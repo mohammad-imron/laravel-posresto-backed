@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\userController;
+use App\Http\Controllers\ProductController;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,4 +25,22 @@ Route::middleware(['auth'])->group(function(){
         return view('pages.dashboard');
     })->name('home');
     Route::resource('users',userController::class);
+    Route::resource('products',ProductController::class);
+});
+
+Route::get('storage/{filename}', function ($filename)
+{
+    $path = storage_path('public/' . $filename);
+
+    if (!File::exists($path)) {
+        abort(404);
+    }
+
+    $file = File::get($path);
+    $type = File::mimeType($path);
+
+    $response = Response::make($file, 200);
+    $response->header("Content-Type", $type);
+
+    return $response;
 });
