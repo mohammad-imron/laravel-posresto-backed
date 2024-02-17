@@ -62,8 +62,10 @@ class ProductController extends Controller
     }
     //edit
     public function edit($id){
-
-        return view('pages.products.edit');
+        $product = Product::findOrFail($id);
+        $categories = DB::table('categories')->get();
+        //compact used to view the query result
+        return view('pages.products.edit', compact('product','categories'));
 
     }
     //update
@@ -73,16 +75,31 @@ class ProductController extends Controller
             'name'=> 'required',
             'description'=>'required',
             'price'=>'required|numeric',
-            'category_id'=>'required|exist:categories,id',
+            'category_id'=>'required',
+            'stock' => 'required|numeric',
+            'status' => 'required|boolean',
+            'is_favorite' => 'required|boolean',
         ]);
 
         //update the request
-        // $product = Product::find($id);
-        // $product->name = $request -> name;
-        // $product->description = $request -> description;
-        // $product->price = $request -> price;
-        // $product->category_id = $request -> category_id;
-        // $product-> save();
+        $product = Product::find($id);
+        $product->name = $request -> name;
+        $product->description = $request -> description;
+        $product->price = $request -> price;
+        $product->category_id = $request -> category_id;
+        $product->stock = $request -> stock;
+        $product->status = $request -> status;
+        $product->is_favorite = $request -> is_favorite;
+        $product-> save();
+
+        //save image
+        // ada file ga, kalau ga ada nanti bakal dilewatin
+        if($request->hasFile('image')){
+            $image = $request->file('image');
+            $image->storeAs('public/produc`ts', $product->id . '.' . $image->getClientOriginalExtension());
+            $product->image = 'storage/products/' . $product->id . '.' . $image->getClientOriginalExtension();
+            $product-> save();
+         }
 
         return redirect()->route('products.index')->with('success','Product updated successfully');
 
